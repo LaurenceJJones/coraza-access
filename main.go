@@ -15,14 +15,22 @@ const (
 	httpStatusError   int = 401
 )
 
+var files = []string{
+	"/coreruleset/coraza.conf",
+	"/coreruleset/coreruleset/crs-setup.conf.example",
+	"/coreruleset/coreruleset/rules/*.conf",
+}
+
 func main() {
 	waf := coraza.NewWaf()
 	waf.SetErrorLogCb(func(mr coraza.MatchedRule) {
 		fmt.Printf("Error: %s\n", mr.ErrorLog(500))
 	})
 	p, _ := seclang.NewParser(waf)
-	if err := p.FromString(`SecRule REQUEST_URI "/block" "id:1,deny,status:500,phase:1,log,msg:'Blocked'"`); err != nil {
-		panic(err)
+	for _, f := range files {
+		if err := p.FromFile(f); err != nil {
+			panic(err)
+		}
 	}
 	fmt.Println("Starting POC")
 	if err := http.ListenAndServe(":8080", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -50,6 +58,7 @@ func main() {
 			r.Header.Del(h)
 		}
 		tx := waf.NewTransaction()
+		tx.RemoveRuleByID(920170)
 		defer func() {
 			tx.ProcessLogging()
 			if err := tx.Clean(); err != nil {
