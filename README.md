@@ -1,3 +1,4 @@
+# ARCHIVED due to [this](https://github.com/jptosso/coraza-access/issues/1)
 Run using the dockerfile, no parameters required, just expose port 80. Or use testing/docker-compose.yml and head to port 8080
 
 ### edit: location / will proxy pass to DVWA
